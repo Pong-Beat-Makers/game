@@ -29,6 +29,8 @@ class GameServerConsumer(AsyncJsonWebsocketConsumer):
             game.move_player(self.channel_name, -1)
         elif content['move'] == 'down':
             game.move_player(self.channel_name, +1)
+        elif content['move'] == 'stop':
+            game.stop_player(self.channel_name)
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)

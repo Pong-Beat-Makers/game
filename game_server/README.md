@@ -21,6 +21,7 @@
 ## API Specification
 
 ### 게임 기본 설정(추후 수정)
+
 ```python
 # settings
 self.map_width = 720
@@ -28,7 +29,7 @@ self.map_height = 480
 self.ball_speed = 5
 self.move_speed = 5
 self.winning_score = 5
-self.paddle_length = 50
+self.paddle_height = 50
 self.paddle_speed = 5
 ```
 
@@ -62,8 +63,9 @@ self.paddle_speed = 5
 #### paddle 움직임 전송
 ```json
 {
-    "move" : "<up 또는 down>"
+    "move" : "<up 또는 down 또는 stop>"
 }
 ```
+description : keydown-> up or down, keyup -> stop
 
 

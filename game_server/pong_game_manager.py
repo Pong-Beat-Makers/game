@@ -18,7 +18,7 @@ class PongGameManager:
             data['type'] = 'send_game_status'
 
             await channel_layer.group_send(room_group_name, data)
-            await asyncio.sleep(0.1)
+            await asyncio.sleep(0.05)
 
         await channel_layer.group_send(room_group_name, {
             'type': 'send_system_message',
