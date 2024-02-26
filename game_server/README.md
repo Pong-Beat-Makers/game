@@ -68,4 +68,11 @@ self.paddle_speed = 5
 ```
 description : keydown-> up or down, keyup -> stop
 
-
+#### 게임 종료 응답
+```json
+{
+  "type": "send_system_message",
+  "message": "Game End",
+  "score": [<player1:int>, <player2:int>]
+}
+```
