@@ -26,9 +26,9 @@ class GameServerConsumer(AsyncJsonWebsocketConsumer):
         if 'move' not in content:
             return
         if content['move'] == 'up':
-            game.move_player(self.channel_name, -1)
+            game.set_player_dy(self.channel_name, -1)
         elif content['move'] == 'down':
-            game.move_player(self.channel_name, +1)
+            game.set_player_dy(self.channel_name, +1)
         elif content['move'] == 'stop':
             game.stop_player(self.channel_name)
 
