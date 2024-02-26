@@ -13,17 +13,27 @@ class PongGameManager:
         game.player1_id = list(channel_layer.groups[room_group_name].keys())[0]
         game.player2_id = list(channel_layer.groups[room_group_name].keys())[1]
 
-        while len(channel_layer.groups[room_group_name]) == 2:
+        while len(channel_layer.groups[room_group_name]) == 2 and game.status == 'play':
             data = game.next_frame()
             data['type'] = 'send_game_status'
 
             await channel_layer.group_send(room_group_name, data)
             await asyncio.sleep(0.05)
 
-        await channel_layer.group_send(room_group_name, {
+        message = {
             'type': 'send_system_message',
             'message': 'Game End',
-        })
+        }
+        if game.status == 'end':  # 정상 종료
+            message['score'] = game.score
+        else:  # 탈주 종료
+            if game.player1_id not in channel_layer.groups[room_group_name].keys():  # player 1 탈주
+                message['score'] = [0, game.winning_score]
+            elif game.player2_id not in channel_layer.groups[room_group_name].keys():  # player 2 탈주
+                message['score'] = [game.winning_score, 0]
+
+        # TODO : Database에 저장
+        await channel_layer.group_send(room_group_name, message)
         self.games.pop(room_group_name)
 
     def get_game(self, room_group_name):

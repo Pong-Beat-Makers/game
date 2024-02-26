@@ -21,6 +21,7 @@ class PongGame:
         self.init_position()
 
         self.score = [0, 0]  # p1,p2
+        self.status = 'play'
 
     def move_player(self, player_id, direction):
         if player_id == self.player1_id:
@@ -75,10 +76,10 @@ class PongGame:
         elif player == 2:
             self.score[1] += 1
 
-        if self.score[0] > self.winning_score:
-            pass
-        elif self.score[1] > self.winning_score:
-            pass
+        if self.score[0] >= self.winning_score:
+            self.status = 'end'
+        elif self.score[1] >= self.winning_score:
+            self.status = 'end'
 
 
     def init_position(self):
