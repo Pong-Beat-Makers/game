@@ -1,10 +1,21 @@
-from django.shortcuts import render
+from django.db.models import Q
+from rest_framework import status
+from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import GameDataSerializer
+from .models import GameDataModel
+from operator import attrgetter
 
 # Create your views here.
 
-class GameDataAPIView(APIView):
-    serializer_class = GameDataSerializer
+class GameDataListView(APIView):
     def get(self, request):
-        serializer = self.serializer_class(data=request.data)
+        nickname = request.GET.get('nickname')
+        date = GameDataModel.objects.get(pk=1)
+        game_data_queryset = GameDataModel.objects.filter(
+            Q(user1_nickname=nickname) | Q(user2_nickname=nickname)
+        ).order_by('-created_at')
+        print(date.created_at)
+        serializer = GameDataSerializer(game_data_queryset, many=True)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
