@@ -38,7 +38,16 @@ self.paddle_speed = 5
 #### 접속
 > Protocol : Websocket   
 > Path : `/ws/game/<uuid>/`   
-> description : 최초 두명 접속 후 게임 자동 시작
+> description : 최초 두명 접속 후 게임 자동 시작   
+> 게임 시작 시 각 플레이어에게 player 정보 제공
+
+```json
+{
+    "type": "send_system_message",
+    "message": "Game Start",
+    "player": <1 or 2>
+}
+```
 
 
 #### 게임 상태 응답
