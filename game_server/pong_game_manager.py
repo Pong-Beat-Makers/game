@@ -9,9 +9,12 @@ class PongGameManager:
     async def start_game(self, room_group_name):
         game = PongGame()
         self.games[room_group_name] = game
+
         channel_layer = get_channel_layer()
         game.player1_id = list(channel_layer.groups[room_group_name].keys())[0]
         game.player2_id = list(channel_layer.groups[room_group_name].keys())[1]
+
+        await self.send_player_data(room_group_name)
 
         while len(channel_layer.groups[room_group_name]) == 2 and game.status == 'play':
             data = game.next_frame()
@@ -38,5 +41,18 @@ class PongGameManager:
 
     def get_game(self, room_group_name):
         return self.games.get(room_group_name)
+
+    # 각 channel에 플레이어 정보 제공
+    async def send_player_data(self, room_group_name):
+        channel_layer = get_channel_layer()
+        game = self.games[room_group_name]
+        message = {
+            'type': 'send_system_message',
+            'message': 'Game Start',
+            'player': 1
+        }
+        await channel_layer.send(game.player1_id, message)
+        message['player'] = 2
+        await channel_layer.send(game.player2_id, message)
 
 

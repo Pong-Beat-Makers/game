@@ -42,4 +42,5 @@ class GameServerConsumer(AsyncJsonWebsocketConsumer):
 
     async def send_system_message(self, event):
         await self.send_json(event)
-        await self.close(1000)
+        if event['message'] == 'Game End':
+            await self.close(1000)
