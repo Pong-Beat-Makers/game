@@ -11,11 +11,9 @@ from operator import attrgetter
 class GameDataListView(APIView):
     def get(self, request):
         nickname = request.GET.get('nickname')
-        date = GameDataModel.objects.get(pk=1)
         game_data_queryset = GameDataModel.objects.filter(
             Q(user1_nickname=nickname) | Q(user2_nickname=nickname)
         ).order_by('-created_at')
-        print(date.created_at)
         serializer = GameDataSerializer(game_data_queryset, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
