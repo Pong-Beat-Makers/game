@@ -5,7 +5,7 @@ drf + channel를 이용한 실시간 ping-pong game server
 ***
 ## 게임 데이터 요청 방법
 #### Http Method: GET
-#### Path: /game/histroy/
+#### Path: /game/histroy/?nickname="대상 닉네임"
 ***
 ## 응답예시
 #### 형식: Json
