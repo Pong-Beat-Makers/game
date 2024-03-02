@@ -14,8 +14,9 @@ class GameDataListView(APIView):
         game_data_queryset = GameDataModel.objects.filter(
             Q(user1_nickname=nickname) | Q(user2_nickname=nickname)
         ).order_by('-created_at')
-        if game_data_queryset is None:
-            return Response(status=status.HTTP_404_NOT_FOUND)
+
+        if not game_data_queryset.exists():
+            return Response({'error': 'data not found'}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = GameDataSerializer(game_data_queryset, many=True)
 
