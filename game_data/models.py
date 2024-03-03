@@ -12,14 +12,17 @@ class GameDataModel(models.Model):
 
     class Meta:
         db_table = 'game_data'
-    def create_match_and_save_game(self, game_info: dict):
+
+    @staticmethod
+    def create_match_and_save_game(game_info: dict):
         user1_nickname = game_info["user1_nickname"]
         user2_nickname = game_info["user2_nickname"]
         user1_score = game_info["user1_score"]
         user2_score = game_info["user2_score"]
         match_type = game_info["match_type"]
 
-        self.objects.create(
+        GameDataModel.objects.create(
+            created_at=timezone.now(),
             user1_nickname=user1_nickname,
             user2_nickname=user2_nickname,
             user1_score=user1_score,
