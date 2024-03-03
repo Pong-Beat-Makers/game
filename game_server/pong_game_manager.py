@@ -6,13 +6,25 @@ class PongGameManager:
     def __init__(self):
         self.games = dict()
 
-    async def start_game(self, room_group_name):
+    async def create_game(self, room_group_name):
         game = PongGame()
         self.games[room_group_name] = game
 
+    async def enroll_player1(self, room_group_name):
+        game = self.games[room_group_name]
         channel_layer = get_channel_layer()
-        game.player1_id = list(channel_layer.groups[room_group_name].keys())[0]
-        game.player2_id = list(channel_layer.groups[room_group_name].keys())[1]
+
+        game.player1_channel_name = list(channel_layer.groups[room_group_name].keys())[0]
+
+    async def enroll_player2(self, room_group_name):
+        game = self.games[room_group_name]
+        channel_layer = get_channel_layer()
+
+        game.player2_channel_name = list(channel_layer.groups[room_group_name].keys())[1]
+
+    async def start_game(self, room_group_name):
+        game = self.games[room_group_name]
+        channel_layer = get_channel_layer()
 
         await self.send_player_data(room_group_name)
 
@@ -30,9 +42,9 @@ class PongGameManager:
         if game.status == 'end':  # 정상 종료
             message['score'] = game.score
         else:  # 탈주 종료
-            if game.player1_id not in channel_layer.groups[room_group_name].keys():  # player 1 탈주
+            if game.player1_channel_name not in channel_layer.groups[room_group_name].keys():  # player 1 탈주
                 message['score'] = [0, game.winning_score]
-            elif game.player2_id not in channel_layer.groups[room_group_name].keys():  # player 2 탈주
+            elif game.player2_channel_name not in channel_layer.groups[room_group_name].keys():  # player 2 탈주
                 message['score'] = [game.winning_score, 0]
 
         # TODO : Database에 저장
@@ -51,8 +63,8 @@ class PongGameManager:
             'message': 'Game Start',
             'player': 1
         }
-        await channel_layer.send(game.player1_id, message)
+        await channel_layer.send(game.player1_channel_name, message)
         message['player'] = 2
-        await channel_layer.send(game.player2_id, message)
+        await channel_layer.send(game.player2_channel_name, message)
 
 

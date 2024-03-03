@@ -11,8 +11,11 @@ class PongGame:
         self.paddle_speed = 5
         self.paddle_width = 2
 
-        self.player1_id = ''
-        self.player2_id = ''
+        self.player1_channel_name = ''
+        self.player2_channel_name = ''
+
+        self.player1_nickname = ''
+        self.player2_nickname = ''
 
         self.player1_dy = 0
         self.player2_dy = 0
@@ -23,10 +26,10 @@ class PongGame:
         self.score = [0, 0]  # p1,p2
         self.status = 'play'
 
-    def set_player_dy(self, player_id, direction):
-        if player_id == self.player1_id:
+    def set_player_dy(self, player_channel_name, direction):
+        if player_channel_name == self.player1_channel_name:
             self.player1_dy = direction
-        elif player_id == self.player2_id:
+        elif player_channel_name == self.player2_channel_name:
             self.player2_dy = direction
 
     def move_player(self):
@@ -50,9 +53,9 @@ class PongGame:
         self.ball_coords[1] += self.ball_speed * self.ball_dir[1]
 
     def stop_player(self, player_id):
-        if player_id == self.player1_id:
+        if player_id == self.player1_channel_name:
             self.player1_dy = 0
-        elif player_id == self.player2_id:
+        elif player_id == self.player2_channel_name:
             self.player2_dy = 0
 
     def next_frame(self) -> dict:

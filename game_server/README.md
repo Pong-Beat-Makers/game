@@ -38,7 +38,24 @@ self.paddle_speed = 5
 #### 접속
 > Protocol : Websocket   
 > Path : `/ws/game/<uuid>/`   
-> description : 최초 두명 접속 후 게임 자동 시작   
+
+#### 인증
+
+> description : 소켓 접속 후
+```json
+{
+  "token" : "<token 정보>"
+}
+```
+해당 json 전송 해야 함.   
+##### 인증 실패 시
+```json
+{
+  'type':"send_system_message",
+  'message': 'Someone Unauthorized'
+}
+```
+> 정상적으로 플레이어가 두명 다 인증 성공 시 게임시작   
 > 게임 시작 시 각 플레이어에게 player 정보 제공
 
 ```json

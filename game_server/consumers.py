@@ -1,6 +1,8 @@
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 import asyncio
 from .pong_game_manager import PongGameManager
+from .pong_game import PongGame
+from .authentication import authenticate
 
 class GameServerConsumer(AsyncJsonWebsocketConsumer):
 
@@ -12,8 +14,11 @@ class GameServerConsumer(AsyncJsonWebsocketConsumer):
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
         num_of_players = len(self.channel_layer.groups[self.room_group_name])
-        if num_of_players == 2:
-            asyncio.create_task(GameServerConsumer.game_manager.start_game(self.room_group_name))
+        if num_of_players == 1:
+            await GameServerConsumer.game_manager.create_game(self.room_group_name)
+            await GameServerConsumer.game_manager.enroll_player1(self.room_group_name)
+        elif num_of_players == 2:
+            await GameServerConsumer.game_manager.enroll_player2(self.room_group_name)
         elif num_of_players == 3:
             await self.send_json({
                 'error': 'Full Room'
@@ -22,7 +27,31 @@ class GameServerConsumer(AsyncJsonWebsocketConsumer):
 
     async def receive_json(self, content, **kwargs):
         game_manager = GameServerConsumer.game_manager
-        game = game_manager.get_game(self.room_group_name)
+        game: PongGame = game_manager.get_game(self.room_group_name)
+
+        if game.player1_nickname == '' or game.player2_nickname == '':
+            if 'token' not in content:
+                await self.send_system_message({
+                    'type': "send_system_message",
+                    'message': 'Someone Unauthorized'
+                })
+            else:
+                player = authenticate(content['token'])
+                if player is None:
+                    await self.send_system_message({
+                        'type': "send_system_message",
+                        'message': 'Someone Unauthorized'
+                    })
+                #  인증 성공
+                if game.player1_channel_name == self.channel_name:
+                    game.player1_nickname = player['nickname']
+                elif game.player2_channel_name == self.channel_name:
+                    game.player2_nickname = player['nickname']
+
+                if game.player1_nickname != '' and game.player2_nickname != '':
+                    asyncio.create_task(GameServerConsumer.game_manager.start_game(self.room_group_name))
+            return
+
         if 'move' not in content:
             return
         if content['move'] == 'up':
