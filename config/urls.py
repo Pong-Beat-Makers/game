@@ -18,6 +18,6 @@ from django.contrib import admin
 from django.urls import path, include
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('game/', include('game_data.urls')),
+    path('api/game/admin/', admin.site.urls),
+    path('api/game/game-data/', include('game_data.urls')),
 ]

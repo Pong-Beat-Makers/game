@@ -4,14 +4,16 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from .serializers import GameDataSerializer
 from .models import GameDataModel
-from operator import attrgetter
-from config.verfying_user import verfying_user
+from config.verifying_user import verifying_user
+from config.utils import get_token
+from rest_framework.exceptions import ValidationError, PermissionDenied
 
 # Create your views here.
 
 class GameDataListView(APIView):
     def get(self, request):
-        if verfying_user(request):
+        try:
+            verifying_user(get_token(request))
             nickname = request.GET.get('nickname')
             game_data_queryset = GameDataModel.objects.filter(
                 Q(user1_nickname=nickname) | Q(user2_nickname=nickname)
@@ -23,4 +25,5 @@ class GameDataListView(APIView):
             serializer = GameDataSerializer(game_data_queryset, many=True)
 
             return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response({'error': 'unauthorized'}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
