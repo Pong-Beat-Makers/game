@@ -35,3 +35,23 @@ drf + channel를 이용한 실시간 ping-pong game server
 }
 </code>
 </pre>
+***
+## 유저 인증, 권한 확인
+****
+### 사용법
+<pre>
+<code>
+verify_user.py의 verifying_user를 import
+
+view나 인증이 필요한 작업전에 
+    try:
+        verifying_user(get_token(request))
+        authenticate 후 처리할 로직들 ...
+</code>
+</pre>
+***
+### 성공
+해당 USER의 nickname
+***
+### 실패
+NONE 반환
