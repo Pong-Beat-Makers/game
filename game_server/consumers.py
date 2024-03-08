@@ -3,6 +3,79 @@ import asyncio
 from .pong_game_manager import PongGameManager
 from .pong_game import PongGame
 from .authentication import authenticate
+import uuid
+
+
+waiting_room = 'waiting_room'
+unauthenticated_room = 'unauthenticated_room'
+
+class WaitingRoomConsumer(AsyncJsonWebsocketConsumer):
+    waiting_list = {}  # channel_name -> user
+    async def connect(self):
+        await self.accept()
+        await self.channel_layer.group_add(unauthenticated_room, self.channel_name)
+
+    async def disconnect(self, close_code):
+        try:
+            await self.channel_layer.group_discard(waiting_room, self.channel_name)
+            self.waiting_list.pop(self.channel_name)
+        except:
+            pass
+        try:
+            await self.channel_layer.group_discard(unauthenticated_room, self.channel_name)
+        except:
+            pass
+
+
+
+    async def receive_json(self, content, **kwargs):
+        if 'token' not in content.keys():
+            await self.close()
+        user = authenticate(content['token'])
+        if not user:
+            await self.send_json({
+                'error': 'Invalid token'
+            })
+            await self.close()
+        self.scope['user'] = user
+        await self.channel_layer.group_discard(unauthenticated_room, self.channel_name)
+        await self.channel_layer.group_add(waiting_room, self.channel_name)
+        self.waiting_list[self.channel_name] = user
+
+
+class TournamentWaitingRoomConsumer(WaitingRoomConsumer):
+    pass
+
+
+class RandomWaitingRoomConsumer(WaitingRoomConsumer):
+    async def connect(self):
+        await super().connect()
+
+    async def receive_json(self, content, **kwargs):
+        await super().receive_json(content, **kwargs)
+        user_cnt = len(self.channel_layer.groups['waiting_room'])
+        if user_cnt == 2:
+            channel_names = list(self.channel_layer.groups[waiting_room].keys())
+            message = {
+                'type': 'send_room_id',
+                'room_id': str(uuid.uuid4()),
+                'user_nicknames': [self.waiting_list[channel_names[0]]['nickname'],
+                                   self.waiting_list[channel_names[1]]['nickname']]
+            }
+            await self.channel_layer.group_send('waiting_room', message)
+
+    async def send_room_id(self, event):
+        # room_id, player1_nick, player2_nick, who
+        message: dict = event.copy()
+        message.pop('type')
+        if message['user_nicknames'][0] == self.scope['user']['nickname']:
+            message['player'] = 1
+        elif message['user_nicknames'][1] == self.scope['user']['nickname']:
+            message['player'] = 2
+        await self.send_json(message)
+        await self.close()
+
+
 
 class GameServerConsumer(AsyncJsonWebsocketConsumer):
 
@@ -72,4 +145,4 @@ class GameServerConsumer(AsyncJsonWebsocketConsumer):
     async def send_system_message(self, event):
         await self.send_json(event)
         if event['message'] == 'Game End':
-            await self.close(1000)
+            await self.close()
