@@ -5,22 +5,14 @@ from .pong_game import PongGame
 from .authentication import authenticate
 import uuid
 
-
-waiting_room = 'waiting_room'
 unauthenticated_room = 'unauthenticated_room'
 
 class WaitingRoomConsumer(AsyncJsonWebsocketConsumer):
-    waiting_list = {}  # channel_name -> user
     async def connect(self):
         await self.accept()
         await self.channel_layer.group_add(unauthenticated_room, self.channel_name)
 
     async def disconnect(self, close_code):
-        try:
-            await self.channel_layer.group_discard(waiting_room, self.channel_name)
-            self.waiting_list.pop(self.channel_name)
-        except:
-            pass
         try:
             await self.channel_layer.group_discard(unauthenticated_room, self.channel_name)
         except:
@@ -39,30 +31,37 @@ class WaitingRoomConsumer(AsyncJsonWebsocketConsumer):
             await self.close()
         self.scope['user'] = user
         await self.channel_layer.group_discard(unauthenticated_room, self.channel_name)
-        await self.channel_layer.group_add(waiting_room, self.channel_name)
-        self.waiting_list[self.channel_name] = user
 
 
 class TournamentWaitingRoomConsumer(WaitingRoomConsumer):
-    pass
+    waiting_list = {}  # channel_name -> user
+
 
 
 class RandomWaitingRoomConsumer(WaitingRoomConsumer):
+    waiting_list = {}  # channel_name -> user
     async def connect(self):
         await super().connect()
 
     async def receive_json(self, content, **kwargs):
         await super().receive_json(content, **kwargs)
-        user_cnt = len(self.channel_layer.groups['waiting_room'])
+        self.waiting_list[self.channel_name] = self.scope['user']
+        user_cnt = len(self.waiting_list)
         if user_cnt == 2:
-            channel_names = list(self.channel_layer.groups[waiting_room].keys())
+            channel_names = list(self.waiting_list.keys())
             message = {
                 'type': 'send_room_id',
                 'room_id': str(uuid.uuid4()),
                 'user_nicknames': [self.waiting_list[channel_names[0]]['nickname'],
                                    self.waiting_list[channel_names[1]]['nickname']]
             }
-            await self.channel_layer.group_send('waiting_room', message)
+            for i in self.waiting_list.keys():
+                await self.channel_layer.send(i, message)
+
+    async def disconnect(self, close_code):
+        await super().disconnect(close_code)
+        self.waiting_list.pop(self.channel_name)
+
 
     async def send_room_id(self, event):
         # room_id, player1_nick, player2_nick, who
@@ -78,6 +77,7 @@ class RandomWaitingRoomConsumer(WaitingRoomConsumer):
 
 
 class GameServerConsumer(AsyncJsonWebsocketConsumer):
+    waiting_list = {}  # channel_name -> user
 
     game_manager = PongGameManager()
     async def connect(self):
