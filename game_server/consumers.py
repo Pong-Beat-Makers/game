@@ -1,11 +1,14 @@
+from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 import asyncio
 from .pong_game_manager import PongGameManager
 from .pong_game import PongGame
 from .authentication import authenticate
 import uuid
+from .models import TournamentTable
 
 unauthenticated_room = 'unauthenticated_room'
+
 
 class WaitingRoomConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
@@ -17,8 +20,6 @@ class WaitingRoomConsumer(AsyncJsonWebsocketConsumer):
             await self.channel_layer.group_discard(unauthenticated_room, self.channel_name)
         except:
             pass
-
-
 
     async def receive_json(self, content, **kwargs):
         if 'token' not in content.keys():
@@ -36,12 +37,55 @@ class WaitingRoomConsumer(AsyncJsonWebsocketConsumer):
 class TournamentWaitingRoomConsumer(WaitingRoomConsumer):
     waiting_list = {}  # channel_name -> user
 
+    async def receive_json(self, content, **kwargs):
+        await super().receive_json(content, **kwargs)
+        self.waiting_list[self.channel_name] = self.scope['user']
+        user_cnt = len(self.waiting_list)
+        if user_cnt == 4:
+            channel_names = list(self.waiting_list.keys())
+            message = {
+                'type': 'send_room_id',
+                'room_id': str(uuid.uuid4()),
+                'user_nicknames': list(
+                    map(lambda channel_name: self.waiting_list[channel_name]['nickname'], channel_names)),
+            }
+            table = await self.create_tournament_table(message['user_nicknames'])
+            GameServerConsumer.game_manager.playing_tournament[message['room_id']] = [table.id, 1] # id 및 매칭 번호
+            for idx, value in enumerate(list(self.waiting_list.keys())):
+                if idx == 2:  # 3,4 Player는 개별의 room_id
+                    message['room_id'] = str(uuid.uuid4())
+                    GameServerConsumer.game_manager.playing_tournament[message['room_id']] = [table.id, 2]
+                await self.channel_layer.send(value, message)
 
+    async def disconnect(self, close_code):
+        await super().disconnect(close_code)
+        self.waiting_list.pop(self.channel_name)
+
+    async def send_room_id(self, event):
+        # room_id, player1_nick, player2_nick, who
+        message: dict = event.copy()
+        message.pop('type')
+        for i in range(0, 4):
+            if message['user_nicknames'][i] == self.scope['user']['nickname']:
+                message['player'] = i + 1
+        await self.send_json(message)
+        await self.close()
+
+    @database_sync_to_async
+    def create_tournament_table(self, player_list):
+        table: TournamentTable = TournamentTable()
+        table.player1 = player_list[0]
+        table.player2 = player_list[1]
+        table.player3 = player_list[2]
+        table.player4 = player_list[3]
+        table.winner1 = None
+        table.winner2 = None
+        table.save()
+
+        return table
 
 class RandomWaitingRoomConsumer(WaitingRoomConsumer):
     waiting_list = {}  # channel_name -> user
-    async def connect(self):
-        await super().connect()
 
     async def receive_json(self, content, **kwargs):
         await super().receive_json(content, **kwargs)
@@ -52,8 +96,9 @@ class RandomWaitingRoomConsumer(WaitingRoomConsumer):
             message = {
                 'type': 'send_room_id',
                 'room_id': str(uuid.uuid4()),
-                'user_nicknames': [self.waiting_list[channel_names[0]]['nickname'],
-                                   self.waiting_list[channel_names[1]]['nickname']]
+                'user_nicknames': list(
+                    map(lambda channel_name: self.waiting_list[channel_name]['nickname'], channel_names)),
+
             }
             for i in self.waiting_list.keys():
                 await self.channel_layer.send(i, message)
@@ -61,7 +106,6 @@ class RandomWaitingRoomConsumer(WaitingRoomConsumer):
     async def disconnect(self, close_code):
         await super().disconnect(close_code)
         self.waiting_list.pop(self.channel_name)
-
 
     async def send_room_id(self, event):
         # room_id, player1_nick, player2_nick, who
@@ -75,11 +119,11 @@ class RandomWaitingRoomConsumer(WaitingRoomConsumer):
         await self.close()
 
 
-
 class GameServerConsumer(AsyncJsonWebsocketConsumer):
     waiting_list = {}  # channel_name -> user
 
     game_manager = PongGameManager()
+
     async def connect(self):
         self.room_id = str(self.scope['url_route']['kwargs']['room_id'])
         self.room_group_name = self.room_id
