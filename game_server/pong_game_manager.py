@@ -43,55 +43,57 @@ class PongGameManager:
             await channel_layer.group_send(room_group_name, data)
             await asyncio.sleep(0.05)
 
-        await self.check_tournament(room_group_name)
-        await self.game_end(room_group_name)
+        game_type =  await self.check_tournament(room_group_name)
+        await self.game_end(room_group_name, game_type)
 
     @database_sync_to_async
     def check_tournament(self, room_group_name):
-        if room_group_name in self.playing_tournament:
-            table_id, game_id = self.playing_tournament[room_group_name]
-            self.playing_tournament.pop(room_group_name)
-            table = TournamentTable.objects.get(id=table_id)
-            game = self.games[room_group_name]
-            win_nickname = ''
-            if game.winning_score == game.score[0]:
-                win_nickname = game.player1_nickname
-            elif game.winning_score == game.score[1]:
-                win_nickname = game.player2_nickname
+        if room_group_name not in self.playing_tournament:
+            return 'Random'
+        table_id, game_id = self.playing_tournament[room_group_name]
+        self.playing_tournament.pop(room_group_name)
+        table = TournamentTable.objects.get(id=table_id)
+        game = self.games[room_group_name]
+        win_nickname = ''
+        if game.winning_score == game.score[0]:
+            win_nickname = game.player1_nickname
+        elif game.winning_score == game.score[1]:
+            win_nickname = game.player2_nickname
 
-            if game_id == 1:
-                table.winner1 = win_nickname
-            elif game_id == 2:
-                table.winner2 = win_nickname
-            elif game_id == 3:  # tournament end
-                url = os.environ.get('CHATTING_SERVER')
-                data = {
-                    'target_nickname': win_nickname,
-                    'message': 'YOU WIN!'
-                }
-                requests.post(url, json=data)
-                table.delete()
-                return
+        if game_id == 1:
+            table.winner1 = win_nickname
+        elif game_id == 2:
+            table.winner2 = win_nickname
+        elif game_id == 3:  # tournament end
+            url = os.environ.get('CHATTING_SERVER')
+            data = {
+                'target_nickname': win_nickname,
+                'message': 'YOU WIN!'
+            }
+            requests.post(url, json=data)
+            table.delete()
+            return 'Tournament-Final Round'
 
-            table.save()
-            if table.winner1 is not None and table.winner2 is not None:
-                url = os.environ.get('CHATTING_SERVER')
-                room_id = str(uuid.uuid4())
-                data = {
-                    'target_nickname': table.winner1,
-                    'message': room_id
-                }
-                response = requests.post(url, json=data)
-                data = {
-                    'target_nickname': table.winner2,
-                    'message': room_id
-                }
-                response = requests.post(url, json=data)
-                self.playing_tournament[room_id] = [table_id, 3]
+        table.save()
+        if table.winner1 is not None and table.winner2 is not None:
+            url = os.environ.get('CHATTING_SERVER')
+            room_id = str(uuid.uuid4())
+            data = {
+                'target_nickname': table.winner1,
+                'message': room_id
+            }
+            response = requests.post(url, json=data)
+            data = {
+                'target_nickname': table.winner2,
+                'message': room_id
+            }
+            response = requests.post(url, json=data)
+            self.playing_tournament[room_id] = [table_id, 3]
+
+        return 'Tournament-First Round'
 
 
-
-    async def game_end(self, room_group_name):
+    async def game_end(self, room_group_name, game_type):
         game: PongGame = self.games[room_group_name]
         channel_layer = get_channel_layer()
         message = {
@@ -111,7 +113,7 @@ class PongGameManager:
             "user2_nickname": game.player2_nickname,
             "user1_score": game.score[0],
             "user2_score": game.score[1],
-            "match_type": "test"  # TODO: match type에 따른 수정 필요
+            "match_type": game_type,
         })
 
         await channel_layer.group_send(room_group_name, message)
