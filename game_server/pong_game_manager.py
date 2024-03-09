@@ -1,12 +1,18 @@
+import os
+import uuid
+
+from .models import TournamentTable
 from .pong_game import PongGame
 from channels.layers import get_channel_layer
 import asyncio
 from game_data.models import GameDataModel
 from channels.db import database_sync_to_async
+import requests
 
 class PongGameManager:
     def __init__(self):
         self.games = dict()
+        self.playing_tournament = dict()  # uuid -> table id
 
     async def create_game(self, room_group_name):
         game = PongGame()
@@ -37,7 +43,53 @@ class PongGameManager:
             await channel_layer.group_send(room_group_name, data)
             await asyncio.sleep(0.05)
 
+        await self.check_tournament(room_group_name)
         await self.game_end(room_group_name)
+
+    @database_sync_to_async
+    def check_tournament(self, room_group_name):
+        if room_group_name in self.playing_tournament:
+            table_id, game_id = self.playing_tournament[room_group_name]
+            self.playing_tournament.pop(room_group_name)
+            table = TournamentTable.objects.get(id=table_id)
+            game = self.games[room_group_name]
+            win_nickname = ''
+            if game.winning_score == game.score[0]:
+                win_nickname = game.player1_nickname
+            elif game.winning_score == game.score[1]:
+                win_nickname = game.player2_nickname
+
+            if game_id == 1:
+                table.winner1 = win_nickname
+            elif game_id == 2:
+                table.winner2 = win_nickname
+            elif game_id == 3:  # tournament end
+                url = os.environ.get('CHATTING_SERVER')
+                data = {
+                    'target_nickname': win_nickname,
+                    'message': 'YOU WIN!'
+                }
+                requests.post(url, json=data)
+                table.delete()
+                return
+
+            table.save()
+            if table.winner1 is not None and table.winner2 is not None:
+                url = os.environ.get('CHATTING_SERVER')
+                room_id = str(uuid.uuid4())
+                data = {
+                    'target_nickname': table.winner1,
+                    'message': room_id
+                }
+                response = requests.post(url, json=data)
+                data = {
+                    'target_nickname': table.winner2,
+                    'message': room_id
+                }
+                response = requests.post(url, json=data)
+                self.playing_tournament[room_id] = [table_id, 3]
+
+
 
     async def game_end(self, room_group_name):
         game: PongGame = self.games[room_group_name]
