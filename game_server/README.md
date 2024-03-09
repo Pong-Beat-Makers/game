@@ -35,6 +35,31 @@ self.paddle_speed = 5
 
 ### 멀티 게임 1대1
 
+#### 대기방
+> Protocol : Websocket  
+> Path : `/ws/game/waitingroom/random/`
+#### 인증
+
+> description : 소켓 접속 후
+```json
+{
+  "token" : "<token 정보>"
+}
+```
+
+#### 방 정보 전송
+
+```json
+{
+    "room_id": "<uuid4>",
+    "user_nicknames": [
+        "<player1 nickname>",
+        "<player2 nickname>"
+    ],
+    "player": "<1 or 2>"
+}
+```
+
 #### 접속
 > Protocol : Websocket   
 > Path : `/ws/game/<uuid>/`   
