@@ -16,8 +16,8 @@ drf + channel를 이용한 실시간 ping-pong game server
 <code>
 {
   "id": "< 게임 데이터 id>",
-  "user1_nickname": "<유저1 닉네임(게임 상 왼쪽에 있는 유저)>",
-  "user2_nickname": "<유저2 닉네임(게임 상 오른쪽에 있는 유저)>",
+  "user1_nickname": "<쿼리로 닉네임이 들어온 유저>",
+  "user2_nickname": "<유저1의 상대>",
   "user1_score": "<유저1 점수>",
   "user2_score": "<유저2 점수>",
   "match_type": "<랜덤인지 토너먼트인지 type>",
