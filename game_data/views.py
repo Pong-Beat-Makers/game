@@ -12,7 +12,7 @@ from config.utils import get_token
 class GameDataListView(APIView):
     def get(self, request):
         try:
-            # verifying_user(get_token(request))
+            verifying_user(get_token(request))
             nickname = request.GET['nickname']
             game_data_queryset = GameDataModel.objects.filter(
                 Q(user1_nickname=nickname) | Q(user2_nickname=nickname)
