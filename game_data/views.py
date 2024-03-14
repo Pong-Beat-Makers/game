@@ -6,15 +6,14 @@ from .serializers import GameDataSerializer
 from .models import GameDataModel
 from config.verifying_user import verifying_user
 from config.utils import get_token
-from rest_framework.exceptions import ValidationError, PermissionDenied
 
 # Create your views here.
 
 class GameDataListView(APIView):
     def get(self, request):
         try:
-            verifying_user(get_token(request))
-            nickname = request.GET.get('nickname')
+            # verifying_user(get_token(request))
+            nickname = request.GET['nickname']
             game_data_queryset = GameDataModel.objects.filter(
                 Q(user1_nickname=nickname) | Q(user2_nickname=nickname)
             ).order_by('-created_at')
@@ -22,7 +21,8 @@ class GameDataListView(APIView):
             if not game_data_queryset.exists():
                 return Response({'error': 'data not found'}, status=status.HTTP_404_NOT_FOUND)
 
-            serializer = GameDataSerializer(game_data_queryset, many=True)
+            serializer = GameDataSerializer(game_data_queryset, many=True,
+                                            context={'nickname': request.GET['nickname']})
 
             return Response(serializer.data, status=status.HTTP_200_OK)
         except Exception as e:
