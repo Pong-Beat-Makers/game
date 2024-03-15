@@ -1,5 +1,15 @@
 # game
 drf + channel를 이용한 실시간 ping-pong game server
+
+# 실행 방법
+```shell
+pip install -r requirements.txt
+python manage.py makemigrations game_data game_server
+python manage.py migrate game_data
+python manage.py migrate game_server
+python manage.py runserver
+```
+
 ***
 # game_data
 ***

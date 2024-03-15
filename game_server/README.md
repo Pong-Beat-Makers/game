@@ -127,3 +127,39 @@ description : keydown-> up or down, keyup -> stop
   "score": [<player1:int>, <player2:int>]
 }
 ```
+
+### 토너먼트 플로우 
+1. /ws/game/waitingroom/tournament/ 에 웹소켓 접속 및 인증
+```json
+{
+  "token": "<token 정보>"
+}
+```
+2. 4명이 모이면 room_id 반환 및 종료
+```json
+{
+  "room_id": "<uuid4>",
+  "user_nicknames": ["<player1 nickname>","<player2 nickname>","<player3 nickname>","<player4 nickname>"],
+  "player" : "<1,2,3 or 4>"
+}
+```
+3. 해당 room_id로 2명씩 게임 플레이
+4. 게임 종료 시 chatting을 통해 다음 게임 정보 전송
+```json
+{
+    "type": "system_message",
+    "from": "admin",
+    "message": "<room id>",
+    "time": "<%H:%M>"
+}
+```
+5. 해당 room id 로 게임 후 최종 승자 결정되면 우승자에게 chatting 전송
+```json
+{
+    "type": "system_message",
+    "from": "admin",
+    "message": "YOU WIN!",
+    "time": "<%H:%M>"
+}
+```
+
