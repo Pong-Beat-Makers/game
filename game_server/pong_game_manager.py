@@ -104,8 +104,10 @@ class PongGameManager:
             message['score'] = game.score
         else:  # 탈주 종료
             if game.player1_channel_name not in channel_layer.groups[room_group_name].keys():  # player 1 탈주
+                game.score[0], game.score[1] = [0, game.winning_score]
                 message['score'] = [0, game.winning_score]
             elif game.player2_channel_name not in channel_layer.groups[room_group_name].keys():  # player 2 탈주
+                game.score[0], game.score[1] = [game.winning_score, 0]
                 message['score'] = [game.winning_score, 0]
 
         await database_sync_to_async(GameDataModel.create_match_and_save_game)({
