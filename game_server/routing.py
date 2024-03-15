@@ -1,12 +1,12 @@
 from channels.routing import URLRouter
 from django.urls import path, include
 
-from game_server import consumers
+from game_server.consumers import GameServerConsumers, WaitingRoomConsumer
 
 sub_url_patterns = [
-    path("<uuid:room_id>/", consumers.GameServerConsumer.as_asgi()),
-    path("waitingroom/random/", consumers.RandomWaitingRoomConsumer.as_asgi()),
-    path("waitingroom/tournament/", consumers.TournamentWaitingRoomConsumer.as_asgi()),
+    path("<uuid:room_id>/", GameServerConsumers.GameServerConsumer.as_asgi()),
+    path("waitingroom/random/", WaitingRoomConsumer.RandomWaitingRoomConsumer.as_asgi()),
+    path("waitingroom/tournament/", WaitingRoomConsumer.TournamentWaitingRoomConsumer.as_asgi()),
 ]
 
 websocket_urlpatterns = [
