@@ -135,6 +135,13 @@ description : keydown-> up or down, keyup -> stop
   "token": "<token 정보>"
 }
 ```
+1-1. 대기자 수 실시간 전송
+```json
+{
+  "type": "send_waiting_number",
+  "waiting_number": <1, 2, 3 or 4>
+}
+```
 2. 4명이 모이면 room_id 반환 및 종료
 ```json
 {
