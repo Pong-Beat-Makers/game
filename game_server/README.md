@@ -193,7 +193,12 @@ description : keydown-> up or down, keyup -> stop
 > 
 > 
 #### paddle 움직임 전송
-> (추가 예정)
+```json
+{
+    "player" : "<1 or 2>",
+    "move" : "<up 또는 down 또는 stop>"
+}
+```
 
 #### 게임 종료 응답
 > 위와 동일

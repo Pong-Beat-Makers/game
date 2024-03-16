@@ -93,7 +93,7 @@ class LocalGameServerConsumer(AsyncJsonWebsocketConsumer):
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
         num_of_players = len(self.channel_layer.groups[self.room_group_name])
-        if num_of_players == 1:
+        if num_of_players == 1 and self.game_manager.get_game(self.room_group_name) is None:
             await self.game_manager.create_game(self.room_group_name)
             await self.game_manager.enroll_player1(self.room_group_name)
             await self.game_manager.enroll_player2(self.room_group_name)
@@ -104,7 +104,7 @@ class LocalGameServerConsumer(AsyncJsonWebsocketConsumer):
             await self.close()
 
     async def receive_json(self, content, **kwargs):
-        game_manager = GameServerConsumer.game_manager
+        game_manager = LocalGameServerConsumer.game_manager
         game: PongGame = game_manager.get_game(self.room_group_name)
 
         if self.is_auth is False:
@@ -125,12 +125,18 @@ class LocalGameServerConsumer(AsyncJsonWebsocketConsumer):
                 asyncio.create_task(self.game_manager.start_game(self.room_group_name))
             return
 
-        if 'move' not in content:
+        if 'move' not in content or 'player' not in content:
             return
-        # TODO : 각 플레이어의 움직임 받음
+        if content['move'] == 'up':
+            game.set_player_dy(f"local_player{content['player']}", -1)
+        elif content['move'] == 'down':
+            game.set_player_dy(f"local_player{content['player']}", +1)
+        elif content['move'] == 'stop':
+            game.stop_player(f"local_player{content['player']}")
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        game: PongGame = self.game_manager.get_game(self.room_group_name)
 
     # my function
 

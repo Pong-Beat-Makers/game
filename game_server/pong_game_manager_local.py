@@ -13,10 +13,12 @@ class PongGameManagerLocal:
     async def enroll_player1(self, room_group_name):
         game = self.games[room_group_name]
         game.player1_channel_name = 'player1'
+        game.player1_channel_name = 'local_player1'
 
     async def enroll_player2(self, room_group_name):
         game = self.games[room_group_name]
         game.player2_channel_name = 'player2'
+        game.player2_channel_name = 'local_player2'
 
     async def start_game(self, room_group_name):
         game = self.games[room_group_name]
