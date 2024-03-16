@@ -163,3 +163,42 @@ description : keydown-> up or down, keyup -> stop
 }
 ```
 
+---
+## Local play
+#### 접속
+
+#### 접속
+> Protocol : Websocket   
+> Path : `/ws/game/local/<uuid>/`   
+
+#### 인증
+
+> description : 소켓 접속 후
+```json
+{
+  "token" : "<token 정보>"
+}
+```
+
+> 인증 후 바로 게임 시작
+```json
+{
+    "type": "send_system_message",
+    "message": "Game Start"
+}
+```
+
+#### 게임 상태   
+> - 위와 동일
+> 
+> 
+#### paddle 움직임 전송
+```json
+{
+    "player" : "<1 or 2>",
+    "move" : "<up 또는 down 또는 stop>"
+}
+```
+
+#### 게임 종료 응답
+> 위와 동일
