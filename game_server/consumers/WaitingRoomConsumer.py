@@ -40,6 +40,9 @@ class TournamentWaitingRoomConsumer(WaitingRoomConsumer):
         await super().receive_json(content, **kwargs)
         self.waiting_list[self.channel_name] = self.scope['user']
         user_cnt = len(self.waiting_list)
+
+        await self.send_waiting_list()
+
         if user_cnt == 4:
             channel_names = list(self.waiting_list.keys())
             message = {
@@ -56,9 +59,21 @@ class TournamentWaitingRoomConsumer(WaitingRoomConsumer):
                     GameServerConsumer.game_manager.playing_tournament[message['room_id']] = [table.id, 2]
                 await self.channel_layer.send(value, message)
 
+
     async def disconnect(self, close_code):
         await super().disconnect(close_code)
         self.waiting_list.pop(self.channel_name)
+        await self.send_waiting_list()
+
+    # 실시간 웨이팅 숫자 전송
+    async def send_waiting_list(self):
+        user_cnt = len(self.waiting_list)
+        for idx, value in enumerate(list(self.waiting_list.keys())):
+            message = {
+                "type": "send_waiting_number",
+                "waiting_number": user_cnt,
+            }
+            await self.channel_layer.send(value, message)
 
     async def send_room_id(self, event):
         # room_id, player1_nick, player2_nick, who
@@ -69,6 +84,9 @@ class TournamentWaitingRoomConsumer(WaitingRoomConsumer):
                 message['player'] = i + 1
         await self.send_json(message)
         await self.close()
+
+    async def send_waiting_number(self, event):
+        await self.send_json(event)
 
     @database_sync_to_async
     def create_tournament_table(self, player_list):
@@ -116,3 +134,5 @@ class RandomWaitingRoomConsumer(WaitingRoomConsumer):
             message['player'] = 2
         await self.send_json(message)
         await self.close()
+
+
