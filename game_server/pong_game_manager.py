@@ -34,7 +34,6 @@ class PongGameManager:
         game = self.games[room_group_name]
         channel_layer = get_channel_layer()
 
-        await self.send_player_data(room_group_name)
         await self.wait_before_game_start(10, room_group_name)
         await self.send_game_start(room_group_name)
 
@@ -126,29 +125,20 @@ class PongGameManager:
     def get_game(self, room_group_name):
         return self.games.get(room_group_name)
 
-    # 각 channel에 플레이어 정보 제공
-    async def send_player_data(self, room_group_name):
-        channel_layer = get_channel_layer()
-        game = self.games[room_group_name]
-        message = {
-            'type': 'send_system_message',
-            'message': 'Game Ready',
-            'player': 1
-        }
-        await channel_layer.send(game.player1_channel_name, message)
-        message['player'] = 2
-        await channel_layer.send(game.player2_channel_name, message)
-
+    # 각 channel에 플레이어 정보 및 10초 카운트
     async def wait_before_game_start(self, second:int, room_group_name):
         channel_layer = get_channel_layer()
         game = self.games[room_group_name]
         message = {
             'type': 'send_system_message',
-            'message': second
+            'message': 'Game Ready',
+            'counter': second,
         }
         for i in range(second, 0, -1):
             message['message'] = i
+            message['player'] = 1
             await channel_layer.send(game.player1_channel_name, message)
+            message['player'] = 2
             await channel_layer.send(game.player2_channel_name, message)
             await asyncio.sleep(1)
 
