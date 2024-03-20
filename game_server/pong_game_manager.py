@@ -34,7 +34,8 @@ class PongGameManager:
         game = self.games[room_group_name]
         channel_layer = get_channel_layer()
 
-        await self.send_player_data(room_group_name)
+        await self.wait_before_game_start(10, room_group_name)
+        await self.send_game_start(room_group_name)
 
         while len(channel_layer.groups[room_group_name]) == 2 and game.status == 'play':
             data = game.next_frame()
@@ -104,8 +105,10 @@ class PongGameManager:
             message['score'] = game.score
         else:  # 탈주 종료
             if game.player1_channel_name not in channel_layer.groups[room_group_name].keys():  # player 1 탈주
+                game.score[0], game.score[1] = [0, game.winning_score]
                 message['score'] = [0, game.winning_score]
             elif game.player2_channel_name not in channel_layer.groups[room_group_name].keys():  # player 2 탈주
+                game.score[0], game.score[1] = [game.winning_score, 0]
                 message['score'] = [game.winning_score, 0]
 
         await database_sync_to_async(GameDataModel.create_match_and_save_game)({
@@ -122,17 +125,32 @@ class PongGameManager:
     def get_game(self, room_group_name):
         return self.games.get(room_group_name)
 
-    # 각 channel에 플레이어 정보 제공
-    async def send_player_data(self, room_group_name):
+    # 각 channel에 플레이어 정보 및 10초 카운트
+    async def wait_before_game_start(self, second:int, room_group_name):
         channel_layer = get_channel_layer()
         game = self.games[room_group_name]
         message = {
             'type': 'send_system_message',
-            'message': 'Game Start',
-            'player': 1
+            'message': 'Game Ready',
+            'counter': second,
+        }
+        for i in range(second, 0, -1):
+            message['message'] = i
+            message['player'] = 1
+            await channel_layer.send(game.player1_channel_name, message)
+            message['player'] = 2
+            await channel_layer.send(game.player2_channel_name, message)
+            await asyncio.sleep(1)
+
+    async def send_game_start(self, room_group_name):
+        channel_layer = get_channel_layer()
+        game = self.games[room_group_name]
+        message = {
+            'type': 'send_system_message',
+            'message': 'Game Start'
         }
         await channel_layer.send(game.player1_channel_name, message)
-        message['player'] = 2
         await channel_layer.send(game.player2_channel_name, message)
+
 
 

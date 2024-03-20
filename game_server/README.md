@@ -80,14 +80,22 @@ self.paddle_speed = 5
   'message': 'Someone Unauthorized'
 }
 ```
-> 정상적으로 플레이어가 두명 다 인증 성공 시 게임시작   
-> 게임 시작 시 각 플레이어에게 player 정보 제공
-
+> 정상적으로 플레이어가 두명 다 인증 성공 시 게임준비 완료
+> 게임 준비 완료 시 각 플레이어에게 player 정보 제공
+> 게임시작 전까지 10초 카운트
 ```json
 {
     "type": "send_system_message",
-    "message": "Game Start",
+    "message": "Game Ready",
+    'counter': <10~1>,
     "player": <1 or 2>
+}
+```
+> 게임시작 메시지 전송
+```json
+{
+    "type": "send_system_message",
+    "message": "Game Start"
 }
 ```
 
@@ -127,3 +135,85 @@ description : keydown-> up or down, keyup -> stop
   "score": [<player1:int>, <player2:int>]
 }
 ```
+
+### 토너먼트 플로우 
+1. /ws/game/waitingroom/tournament/ 에 웹소켓 접속 및 인증
+```json
+{
+  "token": "<token 정보>"
+}
+```
+1-1. 대기자 수 실시간 전송
+```json
+{
+  "type": "send_waiting_number",
+  "waiting_number": <1, 2, 3 or 4>
+}
+```
+2. 4명이 모이면 room_id 반환 및 종료
+```json
+{
+  "room_id": "<uuid4>",
+  "user_nicknames": ["<player1 nickname>","<player2 nickname>","<player3 nickname>","<player4 nickname>"],
+  "player" : "<1,2,3 or 4>"
+}
+```
+3. 해당 room_id로 2명씩 게임 플레이
+4. 게임 종료 시 chatting을 통해 다음 게임 정보 전송
+```json
+{
+    "type": "system_message",
+    "from": "admin",
+    "message": "<room id>",
+    "time": "<%H:%M>"
+}
+```
+5. 해당 room id 로 게임 후 최종 승자 결정되면 우승자에게 chatting 전송
+```json
+{
+    "type": "system_message",
+    "from": "admin",
+    "message": "YOU WIN!",
+    "time": "<%H:%M>"
+}
+```
+
+---
+## Local play
+#### 접속
+
+#### 접속
+> Protocol : Websocket   
+> Path : `/ws/game/local/<uuid>/`   
+
+#### 인증
+
+> description : 소켓 접속 후
+```json
+{
+  "token" : "<token 정보>"
+}
+```
+
+> 인증 후 바로 게임 시작
+```json
+{
+    "type": "send_system_message",
+    "message": "Game Start"
+}
+```
+
+#### 게임 상태   
+> - 위와 동일
+> 
+> 
+#### paddle 움직임 전송
+```json
+{
+    "player" : "<1 or 2>",
+    "move" : "<up 또는 down 또는 stop>"
+}
+```
+
+#### 게임 종료 응답
+> 위와 동일
