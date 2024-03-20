@@ -15,7 +15,7 @@ class GameDataListView(APIView):
             verifying_user(get_token(request))
             nickname = request.GET['nickname']
             game_data_queryset = GameDataModel.objects.filter(
-                Q(user1_nickname=nickname) | Q(user2_nickname=nickname)
+                Q(user1__nickname=nickname) | Q(user2__nickname=nickname)
             ).order_by('-created_at')
 
             if not game_data_queryset.exists():
