@@ -135,7 +135,7 @@ class PongGameManager:
             'counter': second,
         }
         for i in range(second, 0, -1):
-            message['message'] = i
+            message['counter'] = i
             message['player'] = 1
             await channel_layer.send(game.player1_channel_name, message)
             message['player'] = 2
