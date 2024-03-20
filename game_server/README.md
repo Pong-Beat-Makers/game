@@ -80,14 +80,28 @@ self.paddle_speed = 5
   'message': 'Someone Unauthorized'
 }
 ```
-> 정상적으로 플레이어가 두명 다 인증 성공 시 게임시작   
-> 게임 시작 시 각 플레이어에게 player 정보 제공
+> 정상적으로 플레이어가 두명 다 인증 성공 시 게임준비 완료
+> 게임 준비 완료 시 각 플레이어에게 player 정보 제공
 
 ```json
 {
     "type": "send_system_message",
-    "message": "Game Start",
+    "message": "Game Ready",
     "player": <1 or 2>
+}
+```
+> 게임시작 전까지 10초 카운트
+```json
+{
+    "type": "send_system_message",
+    "message": <10~1>
+}
+```
+> 게임시작 메시지 전송
+```json
+{
+    "type": "send_system_message",
+    "message": "Game Start"
 }
 ```
 

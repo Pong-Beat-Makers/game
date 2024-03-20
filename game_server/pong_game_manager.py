@@ -35,6 +35,8 @@ class PongGameManager:
         channel_layer = get_channel_layer()
 
         await self.send_player_data(room_group_name)
+        await self.wait_before_game_start(10, room_group_name)
+        await self.send_game_start(room_group_name)
 
         while len(channel_layer.groups[room_group_name]) == 2 and game.status == 'play':
             data = game.next_frame()
@@ -130,11 +132,35 @@ class PongGameManager:
         game = self.games[room_group_name]
         message = {
             'type': 'send_system_message',
-            'message': 'Game Start',
+            'message': 'Game Ready',
             'player': 1
         }
         await channel_layer.send(game.player1_channel_name, message)
         message['player'] = 2
         await channel_layer.send(game.player2_channel_name, message)
+
+    async def wait_before_game_start(self, second:int, room_group_name):
+        channel_layer = get_channel_layer()
+        game = self.games[room_group_name]
+        message = {
+            'type': 'send_system_message',
+            'message': second
+        }
+        for i in range(second, 0, -1):
+            message['message'] = i
+            await channel_layer.send(game.player1_channel_name, message)
+            await channel_layer.send(game.player2_channel_name, message)
+            await asyncio.sleep(1)
+
+    async def send_game_start(self, room_group_name):
+        channel_layer = get_channel_layer()
+        game = self.games[room_group_name]
+        message = {
+            'type': 'send_system_message',
+            'message': 'Game Start'
+        }
+        await channel_layer.send(game.player1_channel_name, message)
+        await channel_layer.send(game.player2_channel_name, message)
+
 
 
