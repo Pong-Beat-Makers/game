@@ -26,10 +26,12 @@ python manage.py runserver
 <code>
 {
   "id": "< 게임 데이터 id>",
-  "user1_nickname": "<쿼리로 닉네임이 들어온 유저>",
-  "user2_nickname": "<유저1의 상대>",
-  "user1_score": "<유저1 점수>",
-  "user2_score": "<유저2 점수>",
+  "user1_id": "<요청 유저의 id>"
+  "user1_nickname": "<요청 유저의 닉네임>",
+  "user1_score": "<요청 유저의 점수>",
+  "user2_id": "<유저1 상대의 id>"
+  "user2_nickname": "<유저1 상대의 닉네임>",
+  "user2_score": "<유저1 상대의 점수>",
   "match_type": "<랜덤인지 토너먼트인지 type>",
   "created_at": "<게임이 끝난 날짜와 시간>",
 }

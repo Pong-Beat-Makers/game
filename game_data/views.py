@@ -6,6 +6,7 @@ from .serializers import GameDataSerializer
 from .models import GameDataModel
 from config.verifying_user import verifying_user
 from config.utils import get_token
+from rest_framework.exceptions import AuthenticationFailed
 
 # Create your views here.
 
@@ -23,7 +24,8 @@ class GameDataListView(APIView):
 
             serializer = GameDataSerializer(game_data_queryset, many=True,
                                             context={'nickname': request.GET['nickname']})
-
             return Response(serializer.data, status=status.HTTP_200_OK)
-        except Exception as e:
+        except AuthenticationFailed as e:
             return Response({'error': str(e)}, status=status.HTTP_401_UNAUTHORIZED)
+        except Exception as e:
+            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)

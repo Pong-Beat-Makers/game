@@ -1,9 +1,10 @@
-from django.db import models
+from django.db import models, transaction
 from django.utils import timezone
 
 # Create your models here.
 
 class GameUser(models.Model):
+    user_id = models.IntegerField(primary_key=True, unique=True)
     nickname = models.CharField(max_length=15, unique=True)
 
     class Meta:
@@ -22,8 +23,8 @@ class GameDataModel(models.Model):
 
     @staticmethod
     def create_match_and_save_game(game_info: dict):
-        user1 = game_info["user1"]
-        user2 = game_info["user2"]
+        user1 = GameUser.objects.get(nickname=game_info["user1_nickname"])
+        user2 = GameUser.objects.get(nickname=game_info["user2_nickname"])
         user1_score = game_info["user1_score"]
         user2_score = game_info["user2_score"]
         match_type = game_info["match_type"]
