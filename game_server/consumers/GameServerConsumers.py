@@ -41,6 +41,8 @@ class GameServerConsumer(AsyncJsonWebsocketConsumer):
                     'type': "send_system_message",
                     'message': 'Someone Unauthorized'
                 })
+                await self.close(3401)
+                return
             else:
                 player = authenticate(content['token'])
                 if player is None:
@@ -48,6 +50,8 @@ class GameServerConsumer(AsyncJsonWebsocketConsumer):
                         'type': "send_system_message",
                         'message': 'Someone Unauthorized'
                     })
+                    await self.close(3401)
+                    return
                 #  인증 성공
                 if game.player1_channel_name == self.channel_name:
                     game.player1_nickname = player['nickname']
@@ -120,6 +124,8 @@ class LocalGameServerConsumer(AsyncJsonWebsocketConsumer):
                         'type': "send_system_message",
                         'message': 'Someone Unauthorized'
                     })
+                    await self.close(3401)
+                    return
                 #  인증 성공
                 self.is_auth = True
                 asyncio.create_task(self.game_manager.start_game(self.room_group_name))

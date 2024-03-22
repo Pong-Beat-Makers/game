@@ -22,13 +22,15 @@ class WaitingRoomConsumer(AsyncJsonWebsocketConsumer):
 
     async def receive_json(self, content, **kwargs):
         if 'token' not in content.keys():
-            await self.close()
+            await self.close(3401)
+            return
         user = authenticate(content['token'])
         if not user:
             await self.send_json({
                 'error': 'Invalid token'
             })
-            await self.close()
+            await self.close(3401)
+            return
         self.scope['user'] = user
         await self.channel_layer.group_discard(unauthenticated_room, self.channel_name)
 
