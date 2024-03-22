@@ -24,7 +24,7 @@ class WaitingRoomConsumer(AsyncJsonWebsocketConsumer):
         if 'token' not in content.keys():
             await self.close(3401)
             return
-        user = authenticate(content['token'])
+        user = await authenticate(content['token'])
         if not user:
             await self.send_json({
                 'error': 'Invalid token'

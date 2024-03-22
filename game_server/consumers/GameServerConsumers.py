@@ -44,7 +44,7 @@ class GameServerConsumer(AsyncJsonWebsocketConsumer):
                 await self.close(3401)
                 return
             else:
-                player = authenticate(content['token'])
+                player = await authenticate(content['token'])
                 if player is None:
                     await self.send_system_message({
                         'type': "send_system_message",
@@ -118,7 +118,7 @@ class LocalGameServerConsumer(AsyncJsonWebsocketConsumer):
                     'message': 'Someone Unauthorized'
                 })
             else:
-                player = authenticate(content['token'])
+                player = await authenticate(content['token'])
                 if player is None:
                     await self.send_system_message({
                         'type': "send_system_message",
