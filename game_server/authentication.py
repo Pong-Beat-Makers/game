@@ -5,6 +5,7 @@ from channels.db import database_sync_to_async
 async def authenticate(token):
     try:
         return await database_sync_to_async(verifying_user)(token)
-    except:
+    except Exception as e:
+        print(e)
         return None
 
