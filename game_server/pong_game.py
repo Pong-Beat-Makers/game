@@ -14,8 +14,8 @@ class PongGame:
         self.player1_channel_name = ''
         self.player2_channel_name = ''
 
-        self.player1_nickname = ''
-        self.player2_nickname = ''
+        self.player1_id = None
+        self.player2_id = None
 
         self.player1_dy = 0
         self.player2_dy = 0
