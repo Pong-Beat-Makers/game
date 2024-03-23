@@ -52,9 +52,9 @@ self.paddle_speed = 5
 ```json
 {
     "room_id": "<uuid4>",
-    "user_nicknames": [
-        "<player1 nickname>",
-        "<player2 nickname>"
+    "user_ids": [
+        "<player1 id>",
+        "<player2 id>"
     ],
     "player": "<1 or 2>"
 }
@@ -154,7 +154,7 @@ description : keydown-> up or down, keyup -> stop
 ```json
 {
   "room_id": "<uuid4>",
-  "user_nicknames": ["<player1 nickname>","<player2 nickname>","<player3 nickname>","<player4 nickname>"],
+  "user_ids": ["<player1 id>","<player2 id>","<player3 id>","<player4 id>"],
   "player" : "<1,2,3 or 4>"
 }
 ```

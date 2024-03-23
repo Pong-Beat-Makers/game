@@ -35,7 +35,7 @@ class GameServerConsumer(AsyncJsonWebsocketConsumer):
         game_manager = GameServerConsumer.game_manager
         game: PongGame = game_manager.get_game(self.room_group_name)
 
-        if game.player1_nickname == '' or game.player2_nickname == '':
+        if game.player1_id == None or game.player2_id == None:
             if 'token' not in content:
                 await self.send_system_message({
                     'type': "send_system_message",
@@ -54,11 +54,11 @@ class GameServerConsumer(AsyncJsonWebsocketConsumer):
                     return
                 #  인증 성공
                 if game.player1_channel_name == self.channel_name:
-                    game.player1_nickname = player['nickname']
+                    game.player1_id = player['id']
                 elif game.player2_channel_name == self.channel_name:
-                    game.player2_nickname = player['nickname']
+                    game.player2_id = player['id']
 
-                if game.player1_nickname != '' and game.player2_nickname != '':
+                if game.player1_id is not None and game.player2_id is not None:
                     asyncio.create_task(GameServerConsumer.game_manager.start_game(self.room_group_name))
             return
 

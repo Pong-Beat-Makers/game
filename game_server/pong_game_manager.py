@@ -44,7 +44,7 @@ class PongGameManager:
             await channel_layer.group_send(room_group_name, data)
             await asyncio.sleep(0.05)
 
-        game_type =  await self.check_tournament(room_group_name)
+        game_type = await self.check_tournament(room_group_name)
         await self.game_end(room_group_name, game_type)
 
     @database_sync_to_async
@@ -54,21 +54,21 @@ class PongGameManager:
         table_id, game_id = self.playing_tournament[room_group_name]
         self.playing_tournament.pop(room_group_name)
         table = TournamentTable.objects.get(id=table_id)
-        game = self.games[room_group_name]
-        win_nickname = ''
+        game: PongGame = self.games[room_group_name]
+        win_id = None
         if game.winning_score == game.score[0]:
-            win_nickname = game.player1_nickname
+            win_id = game.player1_id
         elif game.winning_score == game.score[1]:
-            win_nickname = game.player2_nickname
+            win_id = game.player2_id
 
         if game_id == 1:
-            table.winner1 = win_nickname
+            table.winner1 = win_id
         elif game_id == 2:
-            table.winner2 = win_nickname
+            table.winner2 = win_id
         elif game_id == 3:  # tournament end
             url = os.environ.get('CHATTING_SERVER')
             data = {
-                'target_nickname': win_nickname,
+                'target_id': win_id,
                 'message': 'YOU WIN!'
             }
             requests.post(url, json=data)
@@ -80,12 +80,12 @@ class PongGameManager:
             url = os.environ.get('CHATTING_SERVER')
             room_id = str(uuid.uuid4())
             data = {
-                'target_nickname': table.winner1,
+                'target_id': table.winner1,
                 'message': room_id
             }
             response = requests.post(url, json=data)
             data = {
-                'target_nickname': table.winner2,
+                'target_id': table.winner2,
                 'message': room_id
             }
             response = requests.post(url, json=data)
@@ -112,8 +112,8 @@ class PongGameManager:
                 message['score'] = [game.winning_score, 0]
 
         await database_sync_to_async(GameDataModel.create_match_and_save_game)({
-            "user1_nickname": game.player1_nickname,
-            "user2_nickname": game.player2_nickname,
+            "user1_id": game.player1_id,
+            "user2_id": game.player2_id,
             "user1_score": game.score[0],
             "user2_score": game.score[1],
             "match_type": game_type,
