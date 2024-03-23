@@ -15,7 +15,7 @@ python manage.py runserver
 ***
 ## 게임 데이터 요청 방법
 #### Http Method: GET
-#### Path: /game/histroy/?nickname="대상 닉네임"
+#### Path: /game/histroy/?id="대상 id"
 ***
 ## 응답예시
 #### 형식: Json
