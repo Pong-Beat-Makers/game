@@ -50,10 +50,10 @@ class TournamentWaitingRoomConsumer(WaitingRoomConsumer):
             message = {
                 'type': 'send_room_id',
                 'room_id': str(uuid.uuid4()),
-                'user_nicknames': list(
-                    map(lambda channel_name: self.waiting_list[channel_name]['nickname'], channel_names)),
+                'user_ids': list(
+                    map(lambda channel_name: self.waiting_list[channel_name]['id'], channel_names)),
             }
-            table = await self.create_tournament_table(message['user_nicknames'])
+            table = await self.create_tournament_table(message['user_ids'])
             GameServerConsumer.game_manager.playing_tournament[message['room_id']] = [table.id, 1] # id 및 매칭 번호
             for idx, value in enumerate(list(self.waiting_list.keys())):
                 if idx == 2:  # 3,4 Player는 개별의 room_id
@@ -82,7 +82,7 @@ class TournamentWaitingRoomConsumer(WaitingRoomConsumer):
         message: dict = event.copy()
         message.pop('type')
         for i in range(0, 4):
-            if message['user_nicknames'][i] == self.scope['user']['nickname']:
+            if message['user_ids'][i] == self.scope['user']['id']:
                 message['player'] = i + 1
         await self.send_json(message)
         await self.close()
@@ -115,8 +115,8 @@ class RandomWaitingRoomConsumer(WaitingRoomConsumer):
             message = {
                 'type': 'send_room_id',
                 'room_id': str(uuid.uuid4()),
-                'user_nicknames': list(
-                    map(lambda channel_name: self.waiting_list[channel_name]['nickname'], channel_names)),
+                'user_ids': list(
+                    map(lambda channel_name: self.waiting_list[channel_name]['id'], channel_names)),
 
             }
             for i in self.waiting_list.keys():
@@ -130,9 +130,9 @@ class RandomWaitingRoomConsumer(WaitingRoomConsumer):
         # room_id, player1_nick, player2_nick, who
         message: dict = event.copy()
         message.pop('type')
-        if message['user_nicknames'][0] == self.scope['user']['nickname']:
+        if message['user_ids'][0] == self.scope['user']['id']:
             message['player'] = 1
-        elif message['user_nicknames'][1] == self.scope['user']['nickname']:
+        elif message['user_ids'][1] == self.scope['user']['id']:
             message['player'] = 2
         await self.send_json(message)
         await self.close()
