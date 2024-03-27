@@ -2,14 +2,14 @@ class PongGame:
     def __init__(self):
         # settings
         self.map_width = 720
-        self.map_height = 480
-        self.ball_speed = 5
+        self.map_height = 480 - 40
+        self.ball_speed = 7
         self.ball_radius = 10
         self.move_speed = 5
         self.winning_score = 5
-        self.paddle_height = 50
+        self.paddle_height = 60
         self.paddle_speed = 5
-        self.paddle_width = 2
+        self.paddle_width = 20
 
         self.player1_channel_name = ''
         self.player2_channel_name = ''
@@ -20,11 +20,14 @@ class PongGame:
         self.player1_dy = 0
         self.player2_dy = 0
 
-        self.ball_dir = [1, 1]  # x, y
+        self.ball_dir = [1.5, 0.5]  # x, y
         self.init_position()
 
         self.score = [0, 0]  # p1,p2
         self.status = 'play'
+
+        self.bounce_time = 0
+        self.after_goal_time = 15
 
     def set_player_dy(self, player_channel_name, direction):
         if player_channel_name == self.player1_channel_name:
@@ -46,11 +49,16 @@ class PongGame:
             self.player2_coords[1] = -1 * (self.map_height // 2) + self.paddle_height // 2
 
     def move_ball(self):
-        self.check_paddle_collision()
-        self.check_wall_collision()
+        if self.bounce_time == 0:
+            self.check_paddle_collision()
+        else:
+            self.bounce_time -= 1
+            if self.bounce_time < 0:
+                self.bounce_time = 0
 
         self.ball_coords[0] += self.ball_speed * self.ball_dir[0]
         self.ball_coords[1] += self.ball_speed * self.ball_dir[1]
+        self.check_wall_collision()
 
     def stop_player(self, player_id):
         if player_id == self.player1_channel_name:
@@ -59,7 +67,10 @@ class PongGame:
             self.player2_dy = 0
 
     def next_frame(self) -> dict:
-        self.move_ball()
+        if self.after_goal_time == 0:
+            self.move_ball()
+        else:
+            self.after_goal_time -= 1
         self.move_player()
 
         return {
@@ -80,14 +91,23 @@ class PongGame:
     def check_paddle_collision(self):
         if self.player1_coords[0] - self.paddle_width // 2 - self.ball_radius <= self.ball_coords[0] <= self.player1_coords[0] + self.paddle_width // 2 + self.ball_radius \
                 and self.player1_coords[1] - self.paddle_height // 2 - self.ball_radius <= self.ball_coords[1] <= self.player1_coords[1] + self.paddle_height // 2 + self.ball_radius:
-            self.ball_dir[0] *= -1
+            if self.player1_coords[0] + self.paddle_width // 2 < self.ball_coords[0]:
+                self.ball_dir[0] *= -1
+            else:
+                self.ball_dir[1] *= -1
+            self.bounce_time = 3
+
         if self.player2_coords[0] - self.paddle_width // 2 - self.ball_radius <= self.ball_coords[0] <= self.player2_coords[0] + self.paddle_width // 2 + self.ball_radius \
                 and self.player2_coords[1] - self.paddle_height // 2 - self.ball_radius <= self.ball_coords[1] <= self.player2_coords[1] + self.paddle_height // 2 + self.ball_radius:
-            self.ball_dir[0] *= -1
+            if self.player2_coords[0] + self.paddle_width // 2 > self.ball_coords[0]:
+                self.ball_dir[0] *= -1
+            else:
+                self.ball_dir[1] *= -1
+            self.bounce_time = 3
 
     def goal(self, player):
         self.init_position()
-
+        self.after_goal_time = 30
         if player == 1:
             self.score[0] += 1
         elif player == 2:

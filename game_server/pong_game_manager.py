@@ -93,7 +93,6 @@ class PongGameManager:
 
         return 'Tournament-First Round'
 
-
     async def game_end(self, room_group_name, game_type):
         game: PongGame = self.games[room_group_name]
         channel_layer = get_channel_layer()
@@ -118,9 +117,30 @@ class PongGameManager:
             "user2_score": game.score[1],
             "match_type": game_type,
         })
+        await self.update_user_stat(room_group_name)
 
         await channel_layer.group_send(room_group_name, message)
         self.games.pop(room_group_name)
+
+    async def update_user_stat(self, room_group_name):
+        game: PongGame = self.games[room_group_name]
+
+        url = os.environ.get('USER_MANAGEMENT_SERVER') + 's2sapi/user-management/user-api/update-stat/'
+        winning_id = None
+        loser_id = None
+        if game.score[0] == game.winning_score:
+            winning_id = game.player1_id
+            loser_id = game.player2_id
+        else:
+            winning_id = game.player2_id
+            loser_id = game.player1_id
+        message = {
+            'winner_id': winning_id,
+            'loser_id': loser_id
+        }
+        res = requests.patch(url, json=message, timeout=1)
+        if res.status_code != 201:
+            raise Exception('User Update Error')
 
     def get_game(self, room_group_name):
         return self.games.get(room_group_name)
