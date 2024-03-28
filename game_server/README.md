@@ -164,8 +164,10 @@ description : keydown-> up or down, keyup -> stop
 {
     "type": "system_message",
     "from": "admin",
-    "message": "<room id>",
-    "time": "<%H:%M>"
+    "message": "Next Match",
+    "room_id" : "<room id>",
+    "time": "<ISO 8601 형식의 시각>",
+    "to_id": "<수신자 id>"
 }
 ```
 5. 해당 room id 로 게임 후 최종 승자 결정되면 우승자에게 chatting 전송
@@ -174,7 +176,8 @@ description : keydown-> up or down, keyup -> stop
     "type": "system_message",
     "from": "admin",
     "message": "YOU WIN!",
-    "time": "<%H:%M>"
+    "time": "<ISO 8601 형식의 시각>",
+    "to_id": "<수신자 id>"
 }
 ```
 

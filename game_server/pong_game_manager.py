@@ -80,13 +80,17 @@ class PongGameManager:
             url = os.environ.get('CHATTING_SERVER')
             room_id = str(uuid.uuid4())
             data = {
+                'type': 'invite_game',
                 'target_id': table.winner1,
-                'message': room_id
+                'room_id': room_id,
+                'message': 'Next Match',
             }
             response = requests.post(url, json=data)
             data = {
+                'type': 'invite_game',
                 'target_id': table.winner2,
-                'message': room_id
+                'room_id': room_id,
+                'message': 'Next Match',
             }
             response = requests.post(url, json=data)
             self.playing_tournament[room_id] = [table_id, 3]
