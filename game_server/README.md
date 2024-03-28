@@ -167,7 +167,8 @@ description : keydown-> up or down, keyup -> stop
     "message": "Next Match",
     "room_id" : "<room id>",
     "time": "<ISO 8601 형식의 시각>",
-    "to_id": "<수신자 id>"
+    "to_id": "<수신자 id>",
+    "opponent_id" : "<결승 상대id>"
 }
 ```
 5. 해당 room id 로 게임 후 최종 승자 결정되면 우승자에게 chatting 전송
