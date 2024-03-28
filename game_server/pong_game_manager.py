@@ -84,6 +84,7 @@ class PongGameManager:
                 'target_id': table.winner1,
                 'room_id': room_id,
                 'message': 'Next Match',
+                'opponent_id': table.winner2
             }
             response = requests.post(url, json=data)
             data = {
@@ -91,6 +92,7 @@ class PongGameManager:
                 'target_id': table.winner2,
                 'room_id': room_id,
                 'message': 'Next Match',
+                'opponent_id': table.winner1
             }
             response = requests.post(url, json=data)
             self.playing_tournament[room_id] = [table_id, 3]
