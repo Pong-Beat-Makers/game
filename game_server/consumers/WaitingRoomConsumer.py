@@ -65,7 +65,8 @@ class TournamentWaitingRoomConsumer(WaitingRoomConsumer):
     async def disconnect(self, close_code):
         await super().disconnect(close_code)
         self.waiting_list.pop(self.channel_name)
-        await self.send_waiting_list()
+        if close_code == 1000:
+            await self.send_waiting_list()
 
     # 실시간 웨이팅 숫자 전송
     async def send_waiting_list(self):
@@ -85,7 +86,7 @@ class TournamentWaitingRoomConsumer(WaitingRoomConsumer):
             if message['user_ids'][i] == self.scope['user']['id']:
                 message['player'] = i + 1
         await self.send_json(message)
-        await self.close()
+        await self.close(3001)
 
     async def send_waiting_number(self, event):
         await self.send_json(event)

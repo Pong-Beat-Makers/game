@@ -35,6 +35,9 @@ class GameServerConsumer(AsyncJsonWebsocketConsumer):
         game_manager = GameServerConsumer.game_manager
         game: PongGame = game_manager.get_game(self.room_group_name)
 
+        if game is None:
+            return
+
         if game.player1_id == None or game.player2_id == None:
             if 'token' not in content:
                 await self.send_system_message({
