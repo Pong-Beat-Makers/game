@@ -72,7 +72,8 @@ class PongGame:
         else:
             self.after_goal_time -= 1
         self.move_player()
-
+        if self.ball_speed < 10:
+            self.ball_speed += 0.01
         return {
             "ball_coords": self.ball_coords,
             "player1_coords": self.player1_coords,

@@ -9,7 +9,7 @@ class GameDataModel(models.Model):
     user2_id = models.IntegerField(default=0)
     user1_score = models.IntegerField(default=0)
     user2_score = models.IntegerField(default=0)
-    match_type = models.CharField(max_length=20, null=False, blank=False)
+    match_type = models.CharField(max_length=30, null=False, blank=False)
 
     class Meta:
         db_table = 'game_data'
