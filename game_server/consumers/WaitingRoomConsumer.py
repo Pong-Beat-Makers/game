@@ -65,7 +65,7 @@ class TournamentWaitingRoomConsumer(WaitingRoomConsumer):
     async def disconnect(self, close_code):
         await super().disconnect(close_code)
         self.waiting_list.pop(self.channel_name)
-        if close_code == 1000:
+        if close_code is None or close_code // 1000 != 3:  # 커스텀 코드가 아닐 때
             await self.send_waiting_list()
 
     # 실시간 웨이팅 숫자 전송
