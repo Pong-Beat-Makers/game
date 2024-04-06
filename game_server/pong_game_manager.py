@@ -44,6 +44,7 @@ class PongGameManager:
             await channel_layer.group_send(room_group_name, data)
             await asyncio.sleep(0.05)
 
+        await self.handle_escape(room_group_name)
         game_type = await self.check_tournament(room_group_name)
         await self.game_end(room_group_name, game_type)
 
@@ -105,16 +106,8 @@ class PongGameManager:
         message = {
             'type': 'send_system_message',
             'message': 'Game End',
+            'score': game.score,
         }
-        if game.status == 'end':  # 정상 종료
-            message['score'] = game.score
-        else:  # 탈주 종료
-            if game.player1_channel_name not in channel_layer.groups[room_group_name].keys():  # player 1 탈주
-                game.score[0], game.score[1] = [0, game.winning_score]
-                message['score'] = [0, game.winning_score]
-            elif game.player2_channel_name not in channel_layer.groups[room_group_name].keys():  # player 2 탈주
-                game.score[0], game.score[1] = [game.winning_score, 0]
-                message['score'] = [game.winning_score, 0]
 
         await database_sync_to_async(GameDataModel.create_match_and_save_game)({
             "user1_id": game.player1_id,
@@ -180,4 +173,12 @@ class PongGameManager:
         await channel_layer.send(game.player2_channel_name, message)
 
 
+    async def handle_escape(self, room_group_name):
+        game: PongGame = self.games[room_group_name]
+        channel_layer = get_channel_layer()
 
+        if game.status != 'end':  # 탈주 종료
+            if game.player1_channel_name not in channel_layer.groups[room_group_name].keys():  # player 1 탈주
+                game.score[0], game.score[1] = [0, game.winning_score]
+            elif game.player2_channel_name not in channel_layer.groups[room_group_name].keys():  # player 2 탈주
+                game.score[0], game.score[1] = [game.winning_score, 0]
